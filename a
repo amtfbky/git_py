@@ -1,0 +1,9 @@
+function a(x){
+	consloe.log(x);
+}
+111
+function b(x){
+	consloe.log(x);
+}
+222
+333
