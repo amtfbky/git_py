@@ -7,4 +7,7 @@ funciton b(){
 }
 
 222
+funciton c(){
+	console.log(x);
+}
 333
