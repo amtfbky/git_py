@@ -1,0 +1,10 @@
+funciton a(){
+	console.log(x);
+}
+111
+funciton b(){
+	console.log(x);
+}
+
+222
+333
