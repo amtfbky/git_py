@@ -6,4 +6,7 @@ function b(x){
 	consloe.log(x);
 }
 222
+function c(x){
+	consloe.log(x);
+}
 333
