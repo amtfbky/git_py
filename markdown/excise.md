@@ -41,6 +41,12 @@
     - 1)
     - 2)
 
+1. name: Aaron
+2. age:40
+3. info:
+   1. qq
+   2. phone
+
 ### 代码(三个反单引号，在英文输入模式下；三个波浪线则是中文）
 
 ~~~python
@@ -116,9 +122,15 @@ print(res)
 
 GitHub Flvored MarkDown
 
-- [x] item1
+- [ ] item1
 - [ ] item2
 - [ ] tiem3
+
+
+
+
+- [ ] yes
+- [ ] no
 
 
 
