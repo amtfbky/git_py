@@ -93,7 +93,7 @@ print(res)
 
 就是三个减号
 
-###HTML代码
+### HTML代码
 
 ```HTML
 <p align='center'>
@@ -114,7 +114,7 @@ print(res)
 
 ### GFM
 
-GitHub Flvored MarkDown	- [ ] filename，可以打勾
+GitHub Flvored MarkDown
 
 - [x] item1
 - [ ] item2
