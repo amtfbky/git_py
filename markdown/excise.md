@@ -69,7 +69,9 @@ print(res)
 
 ### 图片
 
-### [网络图片引用](https://www.baidu.com/s?wd=%E4%BB%8A%E6%97%A5%E6%96%B0%E9%B2%9C%E4%BA%8B&tn=SE_PclogoS_8whnvm25&sa=ire_dl_gh_logo&rsv_dl=igh_logo_pcs “百度图片”)
+### 网络图片引用![网络图片引用](https://www.baidu.com/img/bd_logo1.png "百度图片")
+
+
 
 本地图片引用![本仓库图片引用](F:\markdown\git3.PNG)
 
