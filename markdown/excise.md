@@ -2,6 +2,8 @@
 YAML是“YAML不是一种标记语言”的外语缩写
 ---
 
+[TOC]
+
 ## 标题
 
 # 一级标题
@@ -136,7 +138,7 @@ GitHub Flvored MarkDown
 - [ ] yes
 - [ ] no
 
-[这里出了什么问题，不能勾选][这是脚注测试]
+
 
 ### 表情符号
 
@@ -148,26 +150,11 @@ GitHub Flvored MarkDown
 
 
 
-[^这是脚注测试]: 可以在这里写脚注，哦，吔！
-
 
 
 [豆瓣][原来引用式链接在这里]
 
 [原来引用式链接在这里]: www.douban.com	"练习参考连接"
-
-
-
-
-
-
-
-
-
-
-
-<!-- 引用式链接 -->
-
 [百度]:http://www.baidu.com
 [引用式链接别名]: http://www.baidu.com	"链接别名：百度网"
 [网络图片]: https://www.baidu.com/img/bd_logo1.png	"引用式链接图片"
