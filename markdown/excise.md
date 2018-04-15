@@ -69,11 +69,11 @@ print(res)
 
 ### 图片
 
-### 网络图片引用![网络图片引用](https://www.baidu.com/img/bd_logo1.png "百度图片")
+网络图片引用![](https://www.baidu.com/img/bd_logo1.png "百度图片")
 
+本仓库图片引用
 
-
-本地图片引用![本仓库图片引用](F:\markdown\git3.PNG)
+本地图片引用![](git3.PNG)
 
 网络图片
 
