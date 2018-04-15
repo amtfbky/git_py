@@ -85,5 +85,6 @@ print(res)
 
 [百度]:http://www.baidu.com
 [引用式链接别名]: http://www.baidu.com
-[引用式图片链接]: https://www.baidu.com/img/bd_logo1.png&amp;quot;百度图片
+[引用式图片链接]: https://www.baidu.com/img/bd_logo1.png	"百度图片"
 [引用式链接本仓库图片]: git3.PNG
+
