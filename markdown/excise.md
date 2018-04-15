@@ -1,5 +1,6 @@
 [TOC]
-这里目录制作没有成功
+
+这里目录[^1]制作没有成功
 
 
 ### 标题
@@ -140,9 +141,13 @@ GitHub Flvored MarkDown
 
 [豆瓣][原来引用式链接在这里]
 
+
+
 [原来引用式链接在这里]: www.douban.com	"练习参考连接"
 [百度]:http://www.baidu.com
 [引用式链接别名]: http://www.baidu.com	"链接别名：百度网"
 [网络图片]: https://www.baidu.com/img/bd_logo1.png	"引用式链接图片"
 [本仓库图片]: git3.PNG	"引用本仓库链接图片"
 [Github Flavored Markdown介绍]: https://www.jianshu.com/p/cfPxyr "Github Flavored Markdown介绍"
+
+[^1]: Typora目录内容生成一传到GitHub就不中，捯饬半天没有解决，这些MarkDown编辑器各有千秋各有利弊啊！
