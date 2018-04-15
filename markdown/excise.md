@@ -136,7 +136,7 @@ GitHub Flvored MarkDown
 - [ ] yes
 - [ ] no
 
-
+[这里出了什么问题，不能勾选][这是脚注测试]
 
 ### 表情符号
 
