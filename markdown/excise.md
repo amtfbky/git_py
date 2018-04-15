@@ -73,18 +73,17 @@ print(res)
 
 网络图片引用
 
-![引用式图片链接]
+![百度logo][网络图片]
 
 本仓库图片引用
 
-![引用式链接本仓库图片]
+![本地图片][本仓库图片]
 
 
 
-<!---	引用式链接 -->
+<!-- 引用式链接 -->
 
 [百度]:http://www.baidu.com
-[引用式链接别名]: http://www.baidu.com
-[引用式图片链接]: https://www.baidu.com/img/bd_logo1.png	"百度图片"
-[引用式链接本仓库图片]: git3.PNG
-
+[引用式链接别名]: http://www.baidu.com	"链接别名：百度网"
+[网络图片]: https://www.baidu.com/img/bd_logo1.png	"引用式链接图片"
+[本仓库图片]: git3.PNG	"引用本仓库链接图片"
