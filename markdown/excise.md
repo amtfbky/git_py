@@ -1,3 +1,7 @@
+---
+YAML是“YAML不是一种标记语言”的外语缩写
+---
+
 ## 标题
 
 # 一级标题
@@ -141,6 +145,20 @@ GitHub Flvored MarkDown
 :hourglass_flowing_sand:
 
 :snake:
+
+
+
+[^这是脚注测试]: 可以在这里写脚注，哦，吔！
+
+
+
+[豆瓣][原来引用式链接在这里]
+
+[原来引用式链接在这里]: www.douban.com	"练习参考连接"
+
+
+
+
 
 
 
