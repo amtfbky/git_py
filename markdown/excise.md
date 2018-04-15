@@ -63,22 +63,27 @@ print(res)
 
 [标题](excise.md#标题)
 
+[引用式链接别名]
+
 
 
 ### 引用式链接
 
 ### 图片
 
-网络图片引用![](https://www.baidu.com/img/bd_logo1.png "百度图片")
+网络图片引用
+
+![引用式图片链接]
 
 本仓库图片引用
 
-本地图片引用![](git3.PNG)
+![引用式链接本仓库图片]
 
-网络图片
+
 
 <!---	引用式链接 -->
 
 [百度]:http://www.baidu.com
-[别名]: http://www.baidu.com
-
+[引用式链接别名]: http://www.baidu.com
+[引用式图片链接]: https://www.baidu.com/img/bd_logo1.png&amp;quot;百度图片
+[引用式链接本仓库图片]: git3.PNG
