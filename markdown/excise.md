@@ -112,7 +112,7 @@ print(res)
 | Typora | 居然这么 | 智能制表 |
 |   在   |  左上角  | 调配表格 |
 
-### GFM
+### [GFM][Github Flavored Markdown介绍]
 
 GitHub Flvored MarkDown
 
@@ -142,3 +142,4 @@ GitHub Flvored MarkDown
 [引用式链接别名]: http://www.baidu.com	"链接别名：百度网"
 [网络图片]: https://www.baidu.com/img/bd_logo1.png	"引用式链接图片"
 [本仓库图片]: git3.PNG	"引用本仓库链接图片"
+[Github Flavored Markdown介绍]: https://www.jianshu.com/p/cfPxyr "Github Flavored Markdown介绍"
