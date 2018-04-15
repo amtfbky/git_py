@@ -55,8 +55,28 @@ print(res)
 
 
 
-### 链接
+### 内嵌式链接
 
-[百度](www.baidu.com)
+[百度]()
 
-[文档名]()
+[内部链接文件名称](概述.md)
+
+[标题](excise.md#标题)
+
+
+
+### 引用式链接
+
+### 图片
+
+### ![baidu_pic](https://www.baidu.com/s?wd=%E4%BB%8A%E6%97%A5%E6%96%B0%E9%B2%9C%E4%BA%8B&tn=SE_PclogoS_8whnvm25&sa=ire_dl_gh_logo&rsv_dl=igh_logo_pcs "百度标图")
+
+本地图片引用![baidu_pic](F:\markdowngit3.PNG)
+
+网络图片
+
+<!---	引用式链接 -->
+
+[百度]:http://www.baidu.com
+[baidu]: http://www.baidu.com
+
