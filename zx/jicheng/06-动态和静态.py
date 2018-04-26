@@ -21,11 +21,12 @@ class Game(object):
         print(" 2.结束游戏")
         print("-------------------")
 
-game = Game()
+g = Game()
 #Game.add_num()  # 可以通过类名调用类方法
-game.add_num()
+#print(Game.num)
+g.add_num()
 # 还可以通过该类创建出来的对象，去调用这个类方法
-print(Game.num) 
+print(g.num) 
 
 #Game.print_menu()
-game.print_menu()
+g.print_menu()
