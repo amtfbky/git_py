@@ -43,7 +43,8 @@ class Bullet(object):
         self.x = x + 55
         self.y = y - 40
         self.screen = screen_temp
-        self.image = pygame.image.load("./quanmin/image/UI.png")
+        #self.image = pygame.image.load("./quanmin/image/UI.png")
+        self.image = pygame.image.load("./quanmin/image/button_green.9.png")
 
     def display(self):
         self.screen.blit(self.image, (self.x, self.y))
