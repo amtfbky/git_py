@@ -12,9 +12,8 @@ def get_wendu():
     wendu = 22
 
 # 定义显示温度函数
-def print_wendu(wendu):
-    """给print_wendu方法形参接收从底下调用函数实例传的实参"""
-    print("温度是：%d"%wendu)
+def print_wendu(xingcan):
+    print("温度是：%d"%xingcan)
 
     
 # 创建获取温度实例
