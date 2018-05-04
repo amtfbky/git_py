@@ -11,5 +11,6 @@ def creatNum():
 
 
 a = creatNum()
+# 当这样循环时，数据显示完成后不会报错，点解？
 for n in a:
     print(n)

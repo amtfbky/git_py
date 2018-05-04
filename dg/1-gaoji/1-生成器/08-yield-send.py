@@ -37,3 +37,4 @@ StopIteration                             Traceback (most recent call last)
 
 StopIteration:
 """
+# 用send可以传数据给yield

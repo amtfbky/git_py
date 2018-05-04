@@ -17,9 +17,9 @@ def w1(func):
 def f1():
 	print("---f1---")
 	
-
 def f2():
 	print("---f2---")
+
 # f1作为一个地址被w1当做参数传到w1方法里
 innerFunc = w1(f1)
 #innerFunc = w1(f2)

@@ -19,7 +19,6 @@ def test1():
 def test2():
 	return "----makeitalic----"
 
-
 @makeBold
 @makeItalic
 def test3():

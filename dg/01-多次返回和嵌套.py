@@ -19,7 +19,7 @@ def verage_3_num(n1,n2,n3):
 
 def pingfang_3_num(f1,f2,f3):
     res3 = verage_3_num(f1,f2,f3)
-    res3 *= res3   # 不过**=好像不是平方的运算符，*=才是
+    res3 *= res3 * res3 
     print("三个数平均值的平方：%d"%res3)
 
 num1 = int(input("请输入第一个数字："))
