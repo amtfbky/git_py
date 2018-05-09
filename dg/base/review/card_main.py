@@ -14,7 +14,7 @@ def main():
             if action_num == "1":
                 card_tools.add_card()
             elif action_num == "2":
-                card_tools.show_card()
+                card_tools.show_all()
             elif action_num == "3":
                 card_tools.search_card()
 
