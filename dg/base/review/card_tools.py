@@ -76,6 +76,42 @@ def search_card():
             print("%s\t\t%s\t\t%s" % (d["name"],
                 d["phone"],
                 d["addr"]))
+            # 处理查找到的名片(改删返回上级菜单)
+            deal_card(d)
             break
     else:
         print("抱歉，没有找到 %s！" % find_name)
+
+def deal_card(find_d):
+    """处理名片"""
+    print(find_d)
+
+    ch_str = input("请输入你的操作：1.修改 2.删除 3.返回上级菜单")
+
+    # 判断用户输入
+    if ch_str == "1":
+        # input_card_info函数传实参
+        # 第一个是查找到字典原值
+        # 第二个是用户输入的修改信息(在输入时就有了)
+        find_d["name"] = input_card_info(find_d["name"], "姓名：")
+        find_d["phone"] = input_card_info(find_d["phone"], "电话：")
+        find_d["addr"] = input_card_info(find_d["addr"], "地址：")
+
+        print("修改名片成功!")
+    elif ch_str == "2":
+        card_list.remove(find_d)
+        print("删除名片成功！")
+
+def input_card_info(d_value, tip_msg):
+    """修改名片的处理,传入原字典的值和用户修改时的输入信息"""
+
+    # 提示用户输入内容
+    res_str = input(tip_msg)
+
+    # 针对用户的输入进行判断，如果有内容返回输入结果
+    if len(res_str) > 0:
+        return res_str
+    # 如果没有内容则返回原值，这里回车就行了
+    else:
+        return d_value
+
