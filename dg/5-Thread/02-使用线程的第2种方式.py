@@ -8,8 +8,9 @@ class MyThread(threading.Thread):
             time.sleep(1)
             # name属性中保存的是当前线程的名字
             msg = "I'm "+self.name+' @ '+str(i)
+            print(msg)
 
 
-if __name__ = '__main__':
+if __name__ == '__main__':
     t = MyThread()
     t.start()

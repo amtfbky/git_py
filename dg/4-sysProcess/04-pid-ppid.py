@@ -2,6 +2,7 @@ import os
 
 ret = os.fork()
 print(ret)
+print("haha")
 if ret>0:
     print("-----父进程--%d---"%os.getpid())
 else:

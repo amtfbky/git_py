@@ -7,6 +7,7 @@ def test():
         print("----test---")
         time.sleep(1)
 
+# target是参数
 p = Process(target=test)
 # 让这个进程开始执行test函数里的代码
 p.start()
