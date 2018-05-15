@@ -1,4 +1,3 @@
-# 
 class Test(object):
     # 初始化里有一个num属性，设成私有
     def __init__(self):
