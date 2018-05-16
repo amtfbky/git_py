@@ -2,8 +2,10 @@ from socket import *
 
 serverSocket = socket(AF_INET, SOCK_STREAM)
 
-serverSocket.bind(("", 7788))
+# 绑定本地信息，一般看到绑定，肯定是服务器，客户端可以不绑定
+serverSocket.bind(("", 7789))
 
+# 只要看到listen，肯定是服务器
 serverSocket.listen(5)
 
 print("-----1------")
