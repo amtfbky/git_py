@@ -10,6 +10,16 @@
     具体的传输工具
 
 GET / HTTP/1.1
+Host: 127.0.0.1:8000
+Connection: keep-alive
+Cache-Control: max-age=0
+Upgrade-Insecure-Requests: 1
+User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36
+Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8
+Accept-Encoding: gzip, deflate, br
+Accept-Language: zh-CN,zh;q=0.9
+
+GET / HTTP/1.1
 Host: www.baidu.com
 Connection: keep-alive
 Cache-Control: max-age=0
@@ -67,4 +77,39 @@ URL Location
 URI
 URN Name未来趋势
 
+代码流程
+# tcp socket 服务器
+socket = socket.socket()
+socket.bind()
+socket.listen()
+c = socket.accept()
+while True:
+    p = Process(target=fun, args=())
+    p.start()
+    c.close()
+
+def fun(c):
+    # 接收数据
+    # request_data = recv()
+    # print(request_data)
+    # 解析HTTP报文数据 request_data
+    # 提取请求方式
+    # 提取请求路径
+    HTML_ROOT_DIR = "./html"
+    /index.html
+    try:
+        f = open(HTML_ROOT_DIR + "index.html")
+    data = f.read()
+    f.close()
+    except IOError:
+        HTTP1.1 404 Not Found\r\n
+        \r\n
+        not found
+
+    # 返回响应数据
+    HTTP1.1 200 OK\r\n
+    \r\n
+    hello itcast
+    # send()
+    # close()
 
