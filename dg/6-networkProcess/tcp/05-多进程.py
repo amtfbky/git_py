@@ -22,7 +22,7 @@ def main():
 
     tcpSerSocket.listen(5)
 
-    try:
+    try:    # 用try为了Ctrl+c关闭时接收异常?并关闭被动套接字
         while True:
 
             # 主进程，等待新客户端链接

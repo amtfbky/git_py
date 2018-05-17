@@ -3,7 +3,7 @@ from socket import *
 
 tcpSerSocket = socket(AF_INET, SOCK_STREAM)
 
-tcpSerSocket.bind(("", 7790))
+tcpSerSocket.bind(("", 7789))
 
 tcpSerSocket.listen(5)
 

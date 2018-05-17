@@ -20,7 +20,7 @@ while True:
 
         # 如果接收的数据长度为0，则说明客户端关闭了链接
         if len(recvData)>0:
-            print("%s:%s"%(str(clientaddr), recvData))
+            print("%s:%s"%(str(clientaddr), recvData.decode("gb2312")))
         else:
             break
 
