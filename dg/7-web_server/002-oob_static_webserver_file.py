@@ -5,7 +5,6 @@ import re
 HTML_ROOT_DIR = "./html"
 
 class HTTPServer(object):
-    """"""
     def __init__(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -17,11 +16,9 @@ class HTTPServer(object):
             print("%s:%s line..." % client_addr)
             client_process = Process(target=handle_client, args=(client_socket,))
             client_process.start()
-
             client_socket.close()
 
     def handle_client(client_socket):
-        """deal client data"""
         request_data = client_socket.recv(1024)
         request_lines = request_data.splitlines()
         for i in request_lines:

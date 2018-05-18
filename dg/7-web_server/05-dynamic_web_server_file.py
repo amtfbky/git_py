@@ -1,31 +1,45 @@
 # -*- coding:utf-8 -*-
 import socket
 import re
+import time
+import sys
 from multiprocessing import Process
 # 这是静态文件根目录
 HTML_ROOT_DIR = "./html"
+WSGI_PYTHON_DIR = "./wsgipython"
 
 
 class HTTPServer(object):
-    """HTTP服务器类"""
+    """"""
     def __init__(self):
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)	# 1
+        # socket解决传输层以下的事情
+        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     def start(self):
-        self.server_socket.listen(128)	# 3
+        self.server_socket.listen(128)
         while True:
-            client_socket, client_addr = self.server_socket.accept()	# 4
+            client_socket, client_addr = self.server_socket.accept()
             #print("[%s, %s]用户连接上了" % client_addr[0], client_addr[1])
             print("[%s, %s]用户连接上了" % client_addr)
-            handle_client_process = Process(target=self.handle_client, args=(client_socket,))	# 5
-            handle_client_process.start()	# 6
-            client_socket.close()	# 7
+            handle_client_process = Process(target=self.handle_client, args=(client_socket,))
+            handle_client_process.start()
+            client_socket.close()
+
+    def start_response(self, status, headers):
+        """
+        server_headers = [
+                    {"Server", "My Server"}
+                ]"""
+        response_headers = "HTTP/1.1 " + status + "\r\n"
+        for header in headers:
+            response_headers += "%s: %s\r\n" % header
+        self.response_headers = response_headers
 
     def handle_client(self, client_socket):
         """处理客户端请求"""
         # 这是获取客户端请求数据
-        request_data = client_socket.recv(1024)	# 8
+        request_data = client_socket.recv(1024)
         print("request data:", request_data)
         request_lines = request_data.splitlines()
         for line in request_lines:
@@ -35,6 +49,14 @@ class HTTPServer(object):
         # GET / HTTP/1.1
         request_start_line = request_lines[0]
         file_name = re.match(r"\w+ +(/[^ ]*) ", request_start_line.decode("utf-8")).group(1)
+
+        # "/ctime.py"
+        if file_name.endswith(".py"):
+            # 执行py文件
+            m = __import__(file_name[1:-3])	# =ctime
+            env = {}
+            response_body = m.application(env, self.start_response)
+            response = self.response_headers + "\r\n"
 
         if "/" == file_name:
             file_name = "/index.html"
@@ -56,19 +78,20 @@ class HTTPServer(object):
             response_body = f_data.decode("utf-8")
 
         response = response_start_line + response_headers + "\r\n" + response_body
-        print("response data:", (response_start_line + response_headers))
+        print("response data:", response)
         # 向客户端返回响应数据
         client_socket.send(bytes(response, "utf-8"))
         # 关闭客户端连接
         client_socket.close()
         
-    def bind(self, port):# 2
+    def bind(self, port):
         self.server_socket.bind(("", port))
 
 def main():
+    sys.path.insert(WSGI_PYTHON_DIR, 1)
     http_server = HTTPServer()
     # http_server.set_port
-    http_server.bind(8000)# 2
+    http_server.bind(8000)
     http_server.start()
 
 if __name__ == '__main__':

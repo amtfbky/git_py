@@ -1,4 +1,4 @@
-## -*- coding:utf-8 -*-
+# -*- coding:utf-8 -*-
 import socket
 from multiprocessing import Process
 HTML_ROOT_DIR = ""
