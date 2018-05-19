@@ -113,3 +113,19 @@ def fun(c):
     # send()
     # close()
 
+web_server框架
+application就是网站全局单独一个入口
+/ctime.py
+/sayhello.py
+
+MyWeb.py
+def application(env, start_response):
+    urls = [
+            ("/ctime", ctime),
+            ("/sayhello", sayhello)
+            ]
+
+    path = env.get("PATH_INFO")
+    for urls, app in urls:
+        if path == url:
+            app()

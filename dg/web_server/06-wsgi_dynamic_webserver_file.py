@@ -49,36 +49,41 @@ class HTTPServer(object):
         # GET / HTTP/1.1
         request_start_line = request_lines[0]
         file_name = re.match(r"\w+ +(/[^ ]*) ", request_start_line.decode("utf-8")).group(1)
+        #method = re.match(r"(\w+) +/[^ ]* ", request_start_line.decode("utf-8")).group(1)
 
+        # 第一步：提取请求的文件名
         # "/ctime.py"
         if file_name.endswith(".py"):
             # 执行py文件
             m = __import__(file_name[1:-3])	# =ctime
-            env = {}
-            response_body = m.application(env, self.start_response)
-            response = self.response_headers + "\r\n"
-
-        if "/" == file_name:
-            file_name = "/index.html"
-
-        # 打开文件，读取内容
-        try:
-            f = open(HTML_ROOT_DIR + file_name, "rb")
-        except IOError:
-            response_start_line = "HTTP/1.1 404 Not Found\r\n"
-            response_headers = "Server: My server\r\n"
-            response_body = "The file is not found!"
+            env = {
+            #        "PATH_INFO": file_name,
+            #        "METHOD": method
+                    }
+            response_body = m.application(env, self.start_response) # =m.ctime.application()
+            response = self.response_headers + "\r\n" + response_body
         else:
-            f_data = f.read()
-            f.close()
+            if "/" == file_name:
+                file_name = "/index.html"
 
-            # 构造响应数据
-            response_start_line = "HTTP/1.1 200 OK\r\n"
-            response_headers = "Server: My server\r\n"
-            response_body = f_data.decode("utf-8")
+            # 打开文件，读取内容
+            try:
+                f = open(HTML_ROOT_DIR + file_name, "rb")
+            except IOError:
+                response_start_line = "HTTP/1.1 404 Not Found\r\n"
+                response_headers = "Server: My server\r\n"
+                response_body = "The file is not found!"
+            else:
+                f_data = f.read()
+                f.close()
 
-        response = response_start_line + response_headers + "\r\n" + response_body
-        print("response data:", response)
+                # 构造响应数据
+                response_start_line = "HTTP/1.1 200 OK\r\n"
+                response_headers = "Server: My server\r\n"
+                response_body = f_data.decode("utf-8")
+
+            response = response_start_line + response_headers + "\r\n" + response_body
+            print("response data:", (response_start_line + response_headers))
         # 向客户端返回响应数据
         client_socket.send(bytes(response, "utf-8"))
         # 关闭客户端连接
@@ -88,7 +93,7 @@ class HTTPServer(object):
         self.server_socket.bind(("", port))
 
 def main():
-    sys.path.insert(WSGI_PYTHON_DIR, 1)
+    sys.path.insert(1, WSGI_PYTHON_DIR)
     http_server = HTTPServer()
     # http_server.set_port
     http_server.bind(8000)
