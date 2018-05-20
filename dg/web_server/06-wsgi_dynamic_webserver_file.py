@@ -26,14 +26,22 @@ class HTTPServer(object):
             handle_client_process.start()
             client_socket.close()
 
+    # 第三步：通过调用app把响应文从动态文件传回处理
     def start_response(self, status, headers):
-        """
-        server_headers = [
-                    {"Server", "My Server"}
+        """这就是动态文件的响应文
+        status = "200 OK"
+        headers = [
+                ("Content-Type", "text/plain")
                 ]"""
+
+        # 构造响应文头,这是第一句
         response_headers = "HTTP/1.1 " + status + "\r\n"
-        for header in headers:
-            response_headers += "%s: %s\r\n" % header
+        # 遍历传回的headers,它是元组里的值对,用逗号隔开
+        for i in headers:
+            # 让响应文第一句后面接上遍历出来的值对，用:隔开
+            response_headers += "%s: %s\r\n" % i
+
+        # 初始化响应文头
         self.response_headers = response_headers
 
     def handle_client(self, client_socket):
@@ -54,13 +62,16 @@ class HTTPServer(object):
         # 第一步：提取请求的文件名
         # "/ctime.py"
         if file_name.endswith(".py"):
-            # 执行py文件
+            # 执行py文件,动态导入ctime模块
             m = __import__(file_name[1:-3])	# =ctime
             env = {
             #        "PATH_INFO": file_name,
             #        "METHOD": method
                     }
+            # 第二步：调用创建好的ctime.py文件里的app，传参,这里把start_response当做参数
+            # 把返回的东西当做响应文的body，就是网页内容
             response_body = m.application(env, self.start_response) # =m.ctime.application()
+            # 第四步：把初始化好的响应文头+body
             response = self.response_headers + "\r\n" + response_body
         else:
             if "/" == file_name:
