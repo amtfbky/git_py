@@ -56,6 +56,19 @@ MVT model 与数据库交互
 
 过程中5-8重复
 
+# 刚开始虚拟环境安装不上，所以网上找到解决方法
+sudo apt-get install libmysqlclient-dev
+sudo updatedb
+locate mysql_config
+# 这里可以安装了
+sudo pip install virtualenv
+# 创建虚拟环境 py2(自己取名)
+virtualenv -p /usr/bin/python py2
+# 进入虚拟环境
+source py2/bin/activate
+# 退出虚拟环境
+deactivate
+# 安装mysql-python数据库环境？
 pip install mysql-python
 
 django-admin startproject test2
