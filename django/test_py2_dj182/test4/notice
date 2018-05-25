@@ -1,0 +1,102 @@
+模板
+1.配置
+    -mysql
+    -templates  #   'DIRS': [os.path.join(BASE_DIR, 'templates')],
+    -app        #   'booktest'
+
+2.booktest/models.py
+    from django.db import models
+
+    class BookInfo(models.Model):
+        btitle=models.CharField(max_length=20)
+        bpub_date=models.DateField(db_column='pub_date')
+        bread=models.IntegerField()
+        bcommet=models.IntegerField()
+        isDelete=models.BooleanField()
+        class Meta():
+            db_table='bookinfo'
+
+
+    class HeroInfo(models.Model):
+        hname=models.CharField(max_length=10)
+        hgender=models.BooleanField()
+        hcontent = models.CharField(max_length=1000)
+        isDelete = models.BooleanField()
+        book = models.ForeignKey('BookInfo')
+
+        # 第一步2：变量.showname，单个第二种取值方法
+        def showname(self):
+            return self.hname
+
+3.booktest/urls.py
+    from django.conf.urls import url
+    import views
+
+    urlpatterns=[
+        url(r'^$', views.index, name='index'),
+    ]
+
+4.views.py
+    from django.shortcuts import render
+
+    from models import *
+
+
+    def index(request):
+        hero=HeroInfo.objects.get(pk=1)                             # 取id=1的hname字段的值：郭靖
+        context={'hero': hero}
+
+        # 第二步1：取一坨的值，这里过滤了没有逻辑删除的值
+        list=HeroInfo.objects.filter(isDelete=True)
+
+        # 第二步2：取一坨的值，这里取到没有逻辑删除的值
+        list=HeroInfo.objects.filter(isDelete=False)
+        context={'list': list}
+        return render(request, 'booktest/index.html', context)
+
+5.index.html
+    <body>
+    # 第一步1：变量.hname，单个第一种取值方法
+    {{ hero.hname }}                                                # 变量，数据库表hname字段
+    # 第一步2：变量.showname，单个第二种取值方法
+    {{ hero.showname }}
+    <hr>
+
+    # 第二步1：取一坨的值，判断为空输出nothing ...
+    {% for hero in list%}
+        {% empty %}
+        nothing ...
+    {% endfor %}
+    </body>
+
+    # 第二步2-1：遍历取到的数据
+    <ul>
+    {% for hero in list%}
+        <li>{{ hero.showname }}</li>
+        {% empty %}
+        <li>nothing ...</li>
+    {% endfor %}
+    </ul>
+
+        # 获得当前循环的第几次???看了底下这个就懂了
+        <li>{{ forloop.counter }}{{ hero.showname }}</li>
+
+    # 模板里的注释
+    {# 这是单行注释，底下commet是多行注释 #}
+    {% commet %}
+    http://blog.csdn/net/xyp84/article/details/7945094              # 讲解过滤器的链接
+    {% endcommet %}
+    <ul>
+        # 第二步2-2：遍历，并让奇数行显示蓝色，偶数行绿色
+        {% for hero in list%}
+
+                # 管道为过滤器，这里就是说循环次第数|滤出被2整除的(相当于方法的调用)
+                {% if forloop.counter|divisibleby:"2" %}            # 求余，即判断循环的次第数奇偶
+                    <li style="color:green">{{ forloop.counter }}{{ hero.showname }}</li>
+                {% else %}
+                    <li style="color:blue">{{ forloop.counter }}{{ hero.showname }}</li>
+                {% endif %}
+            {% empty %}
+            <li>nothing ...</li>
+        {% endfor %}
+    </ul>
