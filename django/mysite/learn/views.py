@@ -10,5 +10,7 @@ from django.template import loader, Context
 def index(request):
     # 现在显示index.html
     t = loader.get_template("index.html")
-    c = Context({})
+    # 在HTML里嵌入???
+    user = {"name": "tom", "age": 23, "sex": "male"}
+    c = Context({"title": "django", "name": user})
     return HttpResponse(t.render())
