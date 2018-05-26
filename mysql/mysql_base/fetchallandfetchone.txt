@@ -1,0 +1,45 @@
+最近在用python操作mysql数据库时，碰到了下面这两个函数，标记一下：
+
+fetchone() ：
+
+返回单个的元组，也就是一条记录(row)，如果没有结果 则返回 None
+
+fetchall() ：
+
+返回多个元组，即返回多个记录(rows),如果没有结果 则返回 ()
+
+需要注明：在MySQL中是NULL，而在Python中则是None
+
+
+
+用法如下所示：
+
+fetchone()用法：
+
+cur.execute("select host,user,password from user where user='%s'" %acc)
+jilu = cur.fetchone()  ##此时 通过 jilu[0],jilu[1],jilu[2]可以依次访问host,user,password
+
+
+
+fetchall()用法：
+
+cur.execute("select * from user")
+
+
+如果select本身取的时候有多条数据时：
+
+cursor.fetchone()：将只取最上面的第一条结果，返回单个元组如('id','title')，然后多次使用cursor.fetchone()，依次取得下一条结果，直到为空。
+
+cursor.fetchall() :将返回所有结果，返回二维元组，如(('id','title'),('id','title')),
+
+如果select本身取的时候只有一条数据时：
+
+cursor.fetchone()：将只返回一条结果，返回单个元组如('id','title')。
+
+cursor.fetchall() :也将返回所有结果，返回二维元组，如(('id','title'),),
+
+
+
+备注：其中的id和title为具体的内容
+
+python在mysql在使用fetchall或者是fetchone时，综合起来讲，fetchall返回二维元组（元组中含有元组），fetchone只返回一维元组。
