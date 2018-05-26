@@ -3,4 +3,5 @@ def test():
 	print('git config --global push.default simple')
 	print('remember kuaizhao can del your all work')
 	
-
+if __name__ == '__main__':
+    test()
