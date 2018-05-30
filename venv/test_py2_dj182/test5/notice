@@ -1,0 +1,284 @@
+静态文件
+STATIC_URL = '/static/'                 # 这里是伪装的路径，逻辑上的路径，可以改变名称
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static')
+]
+
+# 动态加载静态文件的路径
+{% load static from staticfiles %}
+# 这里非动态
+<img src="/static/booktest/a.jpg" width="1024" height="768">
+<br>
+# 相当于反向解析
+<img src="{% static 'booktest/a.jpg' %}" width="1024" height="768">
+--------------------------------------------------------------------------
+中间件MIDDLEWARE_CLASSES，一个轻量级的底层的插件系统
+
+中间件：新增MyException.py
+
+注意：先在setting.py里的中间件元组里添加该模块 'booktest.MyException.MyException',
+    from django.http import HttpResponse
+
+    class MyException():
+        def process_exception(request, response, exception):
+            return HttpResponse(exception.message)
+            # return HttpResponse('abc')
+视图
+    def my_exp(request):
+        a1 = int('abc')         # 这里会抛出异常，而中间件会处理异常，并向用户返回异常信息
+        return HttpResponse('hello')
+不大理解???
+-------------------------------------------------------------------------------
+图片上传
+1.pip install pillow==3.4.1
+2.修改setting.py
+MEDIA_ROOT = os.path.join(BASE_DIR, 'static/media')
+
+3.在static文件夹里创建media文件夹
+
+4.视图
+def upload_pic(request):
+    return render(request, 'booktest/upload_pic.html')
+5.模板
+<form action="/upload_handle" method="post" enctype="multipart/form-data">
+    <input type="file" name="pic1">
+    <br>
+    <input type="submit" value="上传">
+</form>
+
+6.视图
+def upload_handle(request):
+    pic1 = request.FILES['pic1']
+    pic_name = os.path.join(settings.MEDIA_ROOT, pic1.name)
+    return HttpResponse(pic_name)                   # 这里可以看到图片上传目的地的路径
+
+7.模板
+<form action="/upload_handle" method="post" enctype="multipart/form-data">
+    {% csrf_token %}                                # 关闭CSRF中间件，否则不能上传
+    <input type="file" name="pic1">
+    <br>
+    <input type="submit" value="上传">
+</form>
+
+8.视图views.py
+def upload_handle(request):
+    pic1 = request.FILES['pic1']
+    pic_name = os.path.join(settings.MEDIA_ROOT, pic1.name)
+    with open(pic_name, 'w') as pic:                # with不用关闭文件?
+        for i in pic1.chunks():                     # 读一点写一点
+            pic.write(i)
+    return HttpResponse('<img src="/static/media/%s"/>' % pic1.name)
+9.此时图片已写入media文件夹里，并在浏览器显示
+
+------------------------------------------------------------------------------------
+站点管理
+
+1.添加超管用户 username:python/code:1-6
+python manage.py createsuperuser
+2.test5/booktest/admin.py
+rom django.contrib import admin
+
+from models import *
+
+3.模型 test5/booktest/models.py
+from django.db import models
+
+class UserInfo(models.Model):
+    uname = models.CharField(max_length=10)
+    upwd = models.CharField(max_length=40)
+    idDelete = models.BooleanField()
+
+
+class BookInfo(models.Model):
+    btitle = models.CharField(max_length=20)
+    bpub_date = models.DateTimeField(db_column='pub_date')
+    bread = models.IntegerField(default=0)
+    bcommet = models.IntegerField(null=False)
+    isDelete = models.BooleanField(default=False)
+
+
+class HeroInfo(models.Model):
+    hname = models.CharField(max_length=10)
+    hgender = models.BooleanField(default=True)
+    hcontent = models.CharField(max_length=1000)
+    isDelete = models.BooleanField(default=False)
+    book = models.ForeignKey(BookInfo)
+
+4.迁移
+python manage.py makemigration
+python manage.py migrate
+
+5.注册
+admin.site.register(BookInfo)
+admin.site.register(BookInfo, BookInfoAdmin)        # 把图书信息管理类添加进来，即注册
+
+6.登录：因为重新建立数据库，所以超管（第一步）要重新设置
+
+7.
+方式一：注册参数
+
+class BookInfoAdmin(admin.ModelAdmin):              # 图书信息管理类
+    list_display = ['id', 'btitle', 'bpub_date']    # 添加信息表格字段
+
+方式二：注册装饰器
+@admin.register(BookInfo)
+class BookInfoAdmin(admin.ModelAdmin):
+    list_display = ['id', 'btitle', 'bpub_date']
+
+================================================================================
+分页
+1.视图
+from models import *
+from django.core.paginator import *                 # 导入分页模块
+
+def hero_list(request):
+    list = HeroInfo.objects.all()
+    paginator = Paginator(list, 5)
+    page = paginator.page(1)
+    context = {'page': page}
+    return render(request, 'booktest/hero_list.html', context)
+
+2.模板
+<ul>
+    {% for hero in page %}
+        <li>{{ hero.hname }}</li>
+    {% endfor %}
+</ul>
+3.路由
+    url(r'^hero_list$', views.hero_list),
+
+4.开始分页了
+4.1 先改模板
+<hr>
+{% for index in page.paginator.page_range %}
+<a href="/hero_list/{{ index }}/">{{ index }}</a>
+{% endfor %}
+4.2 再视图
+def hero_list(request, pindex):
+    list = HeroInfo.objects.all()
+    paginator = Paginator(list, 5)
+    page = paginator.page(int(pindex))
+    context = {'page': page}
+    return render(request, 'booktest/hero_list.html', context)
+4.3 路由
+    url(r'^hero_list/(\d+)/$', views.hero_list),
+但首页即第一页在浏览器地址里默认是不用写的，第二页才开始写.../2/
+
+************
+
+所以再改设置
+4.4.1 视图
+    if pindex == '':                        # 加判断，如果pindex为空，让pindex=1
+        pindex = '1'
+
+4.4.2 路由
+
+    # 不限几个数字了，没有也可以匹配
+    url(r'^hero_list/(\d*)$', views.hero_list),
+
+*************
+又有新问题了，当点击下面某页后，该页还是保持链接状态，把链接状态去掉
+4.5 改模板
+{% for index in page.paginator.page_range %}
+    {% if index == page.number %}           # 注意：这里的等号两边一定要加空格，否则报错
+        {{ index }}
+    {% else %}
+        <a href="/hero_list/{{ index }}">{{ index }}</a>
+    {% endif %}
+{% endfor %}
+
+==============================================================================
+ajax获取省信息
+因为Django在新增模型后迁移（即自动建表）有问题，所以手动建表，然后再新增模型
+1.省信息表
+mysql> create table booktest_areainfo(
+    -> id int primary key,
+    -> title varchar(20),
+    -> parea_id int,
+    -> foreign key(parea_id) references booktest_areainfo(id));
+
+2.相应的模型
+test5/booktest/models.py
+class AreaInfo(models.Model):
+    title = models.CharField(max_length=20)
+    parea = models.ForeignKey('self', null=True, blank=True)        # 省级的外键为空，blank保留空行?
+
+3.视图
+def area(request):
+    return render(request, 'booktest/area.html')
+
+4.模板，先是框架
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="/static/booktest/jquery-1.12.4.min.js"></script>
+    <script>
+
+    </script>
+</head>
+<body>
+    <select id="pro">
+        <option value="">请选择省</option>
+    </select>
+    <select id="cit">
+        <option value="">请选择市</option>
+    </select>
+    <select id="dis">
+        <option value="">请选择区</option>
+    </select>
+</body>
+5.路由
+    url(r'^area/$', views.area),
+
+6.再来视图
+def area2(request, id):
+    id1 = int(id)
+    if id1 == 0:
+        data = AreaInfo.objects.filter(parea__isnull=True).values()
+    else:
+        data = [{}]
+    list = []
+    for area in data:
+        list.append([area.id, area.title])
+
+    return JsonResponse({'data': list})
+
+7.修改模板
+<script src="/static/booktest/jquery-1.12.4.min.js"></script>
+    <script>
+        $(function(){
+            // 查询省信息
+            pro=$('#pro')
+            $.get('/area/0/',function(dic){                             //{data:[[],[],[]]}
+                $.each(dic.data,function(index, item){                  //item=[id,title]
+                    pro.append('<option value="'+item[0]+'">'+item[1]+'</option>')
+                })
+            })
+        });
+    </script>
+
+8.添加路由
+    url(r'^area/(\d+)/$', views.area2),
+
+我没有成功，不知是python代码的问题，还是jquery-1.12.4.min.js的问题
+
+=============================================================================================
+第三方工具：富文本编辑器 tinymce
+
+1.app加载应用
+    。。。
+    'booktest',
+    'tinymce',
+1.1 添加配置
+TINYMCE_DEFAULT_CONFIG = {
+    'theme': 'advanced',
+    'width': 600,
+    'height':400,
+}
+
+2.路由(根级)test5/urls.py
+    url(r'^tinymce/', include('tinymce.urls')),
+
+3.新增模型
+
+

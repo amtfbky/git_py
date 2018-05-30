@@ -1,0 +1,5 @@
+布署到服务器（天天生鲜6-03-01）
+settings.py
+    DEBUG:False
+    ['*']
+

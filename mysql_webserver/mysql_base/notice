@@ -1,0 +1,809 @@
+mysql> create database notice charset=utf8;
+
+mysql> show databases;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| mysql              |
+| notice             |
+| performance_schema |
+| sys                |
++--------------------+
+5 rows in set (0.00 sec)
+
+mysql> drop database notice;
+
+mysql> use notice;
+Database changed
+mysql> show tables;
+Empty set (0.01 sec)
+
+mysql> select database();
++------------+
+| database() |
++------------+
+| notice     |
++------------+
+1 row in set (0.00 sec)
+
+mysql> create table note( 字段 类型 约束
+    -> id int auto_increment primary key not null,# 整型 自动增长 主键 非空
+    -> name varchar(10) not null,# 可变字符串 非空
+    -> gender bit default 1,	# 一个字节0和1，默认1，这里1不能加小括号
+    -> birthday datetime);	# 日期时间
+
+
+mysql> desc note;	# 查看表结构
+
+mysql> alter table note add isDelete bit default 0;	# 增加列，逻辑删除列isDelete,default=0
+
+
+alter table 表名 add|change|drop 列名 类型;	# 列名不能改
+show create table 表名;	# 查看表的创建语句
+
+==================================================================================
+对表的操作
+# 增
+select * from note;
+insert into note(0,'名字',1,'1999-1-1',0);	# 添加内容，单行
+insert into note(name) values '名字';		# 添加字段名字，其他都是默认，单行
+insert into note(gender,name) values(0,'名字');	# 添加多个字段(不管排序)，单行
+insert into note(name) values('name1'),('name2'),('name3'); # 多个名字，即多行添加
+insert into note(列1,...) values(值1,...),(值2,...)...;	# 多列多行，多值
+mysql> insert into note(name,gender,birthday) values('cng',1,'38-1-1'),('wm',0,'50-2-2'),('cnx',1,'36-1-2');
+# 改
+update 表名 set 列1=newvalue,列2=newvalue... where id=num;
+# 删
+delete from note where id=num;	# 物理删除,需謹慎
+update note set isDelete=1 where id=num;	# 逻辑删除
+select * from note where isDelete=0;	# 查看未逻辑刪除的
+
+===================================================================================
+备份导入导出：
+一）在同一个数据库服务器上面进行数据表间的数据导入导出：
+
+
+1. 如果表tb1和tb2的结构是完全一样的，则使用以下的命令就可以将表tb1中的数据导入到表tb2中：
+
+insert into db2.tb2 select * from  db1.tb1
+
+
+2. 如果表tb1和tb2只有部分字段是相同的，要实现将tb1中的部分字段导入到tb2中相对应的相同字段中，则使用以下命令：
+
+insert into db2.tb2(字段1，字段2，字段3……) select  字段1‘，字段2’，字段3‘，……  from db1.tb1;
+
+
+二）但是要实现将远程数据库中数据表tb1的数据导入到本地数据库数据表tb2中，并没有太好的方法像以上例子所示的在本地直接使用SQL语句就能搞定。这时就要使用到数据库（表）的导出，导入。即将远程的数据库（表）导出到本地文件中，然后再将该数据库（表）导入（还原）到本地数据库中。这些方法多应用于数据库的备份和还原中
+
+
+1.远程数据库（表）导出到本地数据库（表）文件
+
+（1）导出数据库
+
+mysqldump -h192.168.1.1 -uroot -p123456 --databases mydb > mydb.bak;      //将192.168.1.1主机上的mydb数据库导出到本地的mydb.bak文件中
+
+（mysqldump  -uroot -p123456 --databases mydb1 > mydb1.bak;                        //将本地mysql服务器上的mydb1数据库导出到本地的mydb1.bak文件中）
+
+（2）导出数据表
+
+mysqldump -h192.168.1.1 -uroot -p123456 mydb tb1 > tb1.bak;                       //将192.168.1.1主机上的mydb数据库的tb1数据表导出到本地的tb1.bak文件中
+
+（mysqldump  -uroot -p123456 mydb1 tb2 > tb2.bak;                                      //将本地主机上的mydb1数据库的tb2数据表导出到本地的tb2.bak文件中）
+
+
+2. 导入数据库（表）
+
+（1）导入数据库
+
+在本地数据库中创建相对应导出的数据库mydb同名的数据库：
+
+mysql> create database mydb;
+
+然后退出数据库，再使用以下的 命令导入数据库文件mydb.bak到本地数据库mydb中：
+
+mysql -uroot -p123456 mydb < /root/data/mydb.bak;
+
+
+或者进入mysql中，使用sourc指令完成数据库导入，如下：
+
+mysql> source  /root/data/mydb.bak;                                          // /root/data/mydb.bak是远程数据库mydb导出文件的本地存放位置
+
+
+（2）导入数据表
+
+在本地数据库中创建相对应导出的数据库mydb同名的数据库：
+
+mysql> create database mydb;
+
+然后在mysql中使用source指令来完成数据表的导入，如下：
+
+mysql> source /root/data/tb1.bak;                                               // /root/data/tb1.bak是远程数据表tb1导出文件的本地存放位置
+
+ 
+
+三） 导出表记录到文件
+
+mysql -hxxx.xxx.xxx.xxx -uroot -pxxxxxx -D WHOIS -e "select domain from domainInfo where queryFlag = '2' or queryFlag = '3'" >  /data/dump/overdue
+
+
+注意：在数据库（表）的导入、导出过程中，视数据库（表）的大小，需要一定的时间开销，请耐性等候……
+
+
+
+四）导入、导出数据表中的数据
+
+
+
+1. 导出表数据到文件中：
+mysql -uroot -p123456 --default-character-set=utf8
+use guanjia;
+select * from driver into outfile '/tmp/a.txt';
+
+(select * from crawlDocs order by DocCrawlTime desc limit 2000 into outfile '/tmp/weixinData' FIELDS TERMINATED BY ',';)
+一般最好是导出到/tmp目录下，因为这样mysql用户也可以写入。
+
+
+
+
+2. 表数据导入到数据表中：
+mysql -uroot -p123456 --default-character-set=utf8
+use guanjia;
+load data infile '/tmp/a.txt' into table test CHARACTER SET utf8;
+
+(load data infile '/tmp/weiData' into table crawlDocs CHARACTER SET utf8 FIELDS TERMINATED BY ',';)
+
+如果导入时出现类似 ERROR 29 (HY000): File '/tmp/a.txt' not found (Errcode: 13)的错误，则很可能是因为mysql用户没有权限访问该文件，
+则使用 chown mysql:mysql /tmp/a.txt 将该文件的所属设为mysql用户，再次执行上面的命令则一般可以完成导入。
+
+===================================================================================
+查
+select id,name form note;	# 筛选
+select distinct gender from note;	# 消除重复行
+select distinct id,gender from note;
+where
+select * from note where id>3;	# id<=num
+select * from note where name!='name'; # 不是谁
+select * from note where isDelete=0;	# 都要基于这个查询，就是逻辑没有删除的
+mysql> select * from note where id>3 and gender=0;
+mysql> select * from note where id<4 or isDelete=0;
+
+模糊查询
+mysql> select * from note where name like '陈%';# 多个字符
+mysql> select * from note where name like '陈_';# 单个字符
+mysql> select * from note where name like '陈%' or name like '%龙%';
+
+范围
+mysql> select * from note where id in(2,3,5);
+mysql> select * from note where id between 3 and 7;
+mysql> select * from note where id between 3 and 7 and gender=1;
+
+空，非空
+mysql> select * from note where birthday is null;
+mysql> select * from note where birthday is not null and gender=0;
+
+聚合
+select count(*) from note;	# 总数
+select count(*) from note where isDelete=0;
+select min(id) from note where isDelete=0 and gender=0;
+select max(id) from note where gender=0;
+select * from note where id=(select min(id) from note where isDelete=0 and gender=0);
+
+select sum(id) from note where gender=1;	# 和
+select avg(id) from note where gender=0 and isDelete=0; # 平均值
+
+分组
+select count(*) from note group by gender;
+select gender,count(*) from note group by gender;	# 按性别，比上一句返回结果好
+
+分组后筛选
+select gender,count(*) from note group by gender having gender=0;	# 按性别统计后再按性别筛选
+select gender,count(*) from note group by gender having count(*)>2;	# 按性别统计后再按统计数量筛选
+# 上面这句显示男女统计数量结果大于2的成员
+select gender,count(*) as rs from note group by gender having rs>3;	# 给统计结果取别名，给后面的筛选方便使用
+# 上面这句显示男女统计数量结果大于3的成员
+
+排序
+select * from note where isDelete=0 and gender=1 order by id desc;	# 降序
+
+alter table tablename add isdelete bit default 0; # 增加逻辑删除字段isdelete
+update tablename set isdelete=1 where 字段名 in('name1','name2'); # 修改两个名字的逻辑删除值
+
+select * from note where isDelete=0 and gender=1 order by name asc;			# 升序
+select * from note where isDelete=0 and gender=1 order by name;	# 未逻辑删除男性按名字首字母升序排序
+# 升序时，asc可省略不写
+
+获取部分行
+分页
+select * from note limit 2,1;	# 从索引2开始，取一行
+select * from note where isDelete=0 limit 1,3; # 未逻辑删除的从索引值1开始，取三行
+已知：每页显示m条数据，当前是第n页
+求总页数：
+	-查询总条数p1
+	-使用p1除以m得到p2
+	-如果整除，p2为总数页
+	-如果不整除，p2+1为总页数
+求第n页的数据（什么乱七八糟看不懂）
+看这里的解决办法：
+公式：(n-1)*m,m
+求证：n=3
+第一页：0,1,2,3,4	(3-1)*5
+第二页：5,6,7,8,9	(3-1)*5
+第三页：10,11,12,13,14	(3-1)*5
+
+0,1,2	(3-1)*3
+3,4,5	(3-1)*3
+6,7,8	(3-1)*3
+实例：每页显示10条数据，那现在要取第9页的数据：
+select * from 表名 where isdelete=0 limit (9-1)*10,10；
+select * from 表名 where isdelete=0 limit 80,10;	# 即从索引值80开始，取10行
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+总结：
+完整的select语句：编写顺序
+select distinct * from 表名 where ...
+			   group by ... having ...
+			   order by ...
+			   limit start,count
+
+执行顺序为：
+	from 表名
+	where ...
+	group by ...
+	select distinct *
+	having ...
+	order by ...
+	limit start,count
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++==
+高级：关系存储
+新建3个表
+学生表：id,name
+成绩表：id,score,学生,科目
+科目表：id,title
+mysql> create table students(
+    -> id int auto_increment primary key not null,
+    -> name varchar(10) not null);
+
+mysql> create table subjects(
+    -> id int auto_increment primary key not null,
+    -> title varchar(10) not null);
+
+mysql> create table scores(
+    -> id int auto_increment primary key not null,
+    -> score decimal(4,1),
+    -> stuid int,
+    -> subid int,
+    -> foreign key(stuid) references students(id),
+    -> foreign key(subid) references subjects(id));
+
+ Cannot add foreign key constraint无法添加外键约束
+1，两张表里要设主键和外键的字段的数据类型或者数据长度不一样 
+2，某个表里已经有记录了
+
+insert into scores values(0,100,1,1);无法添加或更新子行: 外键约束失败
+Cannot add or update a child row: a foreign key constraint fails (`guanxi`.`scores`, CONSTRAINT `scores_ibfk_1` FOREIGN KEY (`stuid`) REFERENCES `students` (`id`))
+mysql> desc scores;
+
+select students.name,subjects.title,scores.score
+from scores
+inner join students on scores.stuid=students.id
+inner join subjects on scores.subid=subjects.id;
++------+---------+-------+
+| name | title   | score |
++------+---------+-------+
+| xhm  | yuwen   | 100.0 |
+| azg  | yuwen   |  98.0 |
+| azg  | English |  99.0 |
+| azg  | php     |  93.0 |
+| azg  | java    |  50.0 |
+| azg  | shuxue  |  32.0 |
+| azg  | php     |  78.0 |
+| cxy  | python  |  80.0 |
+| xsc  | shuxue  |  89.0 |
++------+---------+-------+
+
+select students.name,subjects.title,scores.score
+from students
+inner join scores on scores.stuid=students.id
+inner join subjects on scores.subid=subjects.id;
+# 该命令语句结果同上
+
+select *
+from scores
+inner join students on students.id=scores.stuid; # inner
+
++----+-------+-------+-------+----+------+
+| id | score | stuid | subid | id | name |
++----+-------+-------+-------+----+------+
+|  3 | 100.0 |     1 |     1 |  1 | xhm  |
+|  4 |  98.0 |     2 |     1 |  2 | azg  |
+|  5 |  99.0 |     2 |     3 |  2 | azg  |
+|  7 |  93.0 |     2 |     5 |  2 | azg  |
+|  8 |  50.0 |     2 |     6 |  2 | azg  |
+| 10 |  32.0 |     2 |     2 |  2 | azg  |
+| 11 |  78.0 |     2 |     5 |  2 | azg  |
+|  6 |  80.0 |     3 |     4 |  3 | cxy  |
+|  9 |  89.0 |     4 |     2 |  4 | xsc  |
++----+-------+-------+-------+----+------+
+
+select *
+from scores
+left join students on students.id=scores.stuid;
+# 选择成绩表 连接 学生表 基于学生表id=成绩表外键学生id
+# 以左边的成绩表id排序为准显示信息
++----+-------+-------+-------+------+------+
+| id | score | stuid | subid | id   | name |
++----+-------+-------+-------+------+------+
+|  3 | 100.0 |     1 |     1 |    1 | xhm  |
+|  4 |  98.0 |     2 |     1 |    2 | azg  |
+|  5 |  99.0 |     2 |     3 |    2 | azg  |
+|  6 |  80.0 |     3 |     4 |    3 | cxy  |
+|  7 |  93.0 |     2 |     5 |    2 | azg  |
+|  8 |  50.0 |     2 |     6 |    2 | azg  |
+|  9 |  89.0 |     4 |     2 |    4 | xsc  |
+| 10 |  32.0 |     2 |     2 |    2 | azg  |
+| 11 |  78.0 |     2 |     5 |    2 | azg  |
++----+-------+-------+-------+------+------+
+
+select *
+from scores
+right join students on students.id=scores.stuid;
+# 选择成绩表 连接 学生表 基于 学生表id=成绩表外键学生id
+# 以右边的学生表id排序为准显示信息
++------+-------+-------+-------+----+-------+
+| id   | score | stuid | subid | id | name  |
++------+-------+-------+-------+----+-------+
+|    3 | 100.0 |     1 |     1 |  1 | xhm   |
+|    4 |  98.0 |     2 |     1 |  2 | azg   |
+|    5 |  99.0 |     2 |     3 |  2 | azg   |
+|    7 |  93.0 |     2 |     5 |  2 | azg   |
+|    8 |  50.0 |     2 |     6 |  2 | azg   |
+|   10 |  32.0 |     2 |     2 |  2 | azg   |
+|   11 |  78.0 |     2 |     5 |  2 | azg   |
+|    6 |  80.0 |     3 |     4 |  3 | cxy   |
+|    9 |  89.0 |     4 |     2 |  4 | xsc   |
+| NULL |  NULL |  NULL |  NULL |  5 | laoge |
+| NULL |  NULL |  NULL |  NULL |  6 | zhan  |
+| NULL |  NULL |  NULL |  NULL |  7 | qiang |
++------+-------+-------+-------+----+-------+
+
+select *
+from students
+left join scores on students.id=scores.stuid;
+# 选择学生表 连接 成绩表 基于 学生表id=成绩表外键学生id
+# 以左边的学生表id排序为准显示信息
++----+-------+------+-------+-------+-------+
+| id | name  | id   | score | stuid | subid |
++----+-------+------+-------+-------+-------+
+|  1 | xhm   |    3 | 100.0 |     1 |     1 |
+|  2 | azg   |    4 |  98.0 |     2 |     1 |
+|  2 | azg   |    5 |  99.0 |     2 |     3 |
+|  2 | azg   |    7 |  93.0 |     2 |     5 |
+|  2 | azg   |    8 |  50.0 |     2 |     6 |
+|  2 | azg   |   10 |  32.0 |     2 |     2 |
+|  2 | azg   |   11 |  78.0 |     2 |     5 |
+|  3 | cxy   |    6 |  80.0 |     3 |     4 |
+|  4 | xsc   |    9 |  89.0 |     4 |     2 |
+|  5 | laoge | NULL |  NULL |  NULL |  NULL |
+|  6 | zhan  | NULL |  NULL |  NULL |  NULL |
+|  7 | qiang | NULL |  NULL |  NULL |  NULL |
++----+-------+------+-------+-------+-------+
+
+select *
+from students
+right join scores on students.id=scores.stuid;
+# 选择学生表 连接 成绩表 基于 学生表id=成绩表外键学生id
+# 以左边的学生表id排序为准显示信息
++------+------+----+-------+-------+-------+
+| id   | name | id | score | stuid | subid |
++------+------+----+-------+-------+-------+
+|    1 | xhm  |  3 | 100.0 |     1 |     1 |
+|    2 | azg  |  4 |  98.0 |     2 |     1 |
+|    2 | azg  |  5 |  99.0 |     2 |     3 |
+|    3 | cxy  |  6 |  80.0 |     3 |     4 |
+|    2 | azg  |  7 |  93.0 |     2 |     5 |
+|    2 | azg  |  8 |  50.0 |     2 |     6 |
+|    4 | xsc  |  9 |  89.0 |     4 |     2 |
+|    2 | azg  | 10 |  32.0 |     2 |     2 |
+|    2 | azg  | 11 |  78.0 |     2 |     5 |
++------+------+----+-------+-------+-------+
+
+select name,avg(score) from scores
+inner join students on scores.stuid=students.id
+group by stuid;
+# 选择成绩表 姓名,平均分 连接 学生表 基于 成绩表外键学生id=学生表id
+# 分组 基于 成绩表外键学生id
++------+------------+
+| name | avg(score) |
++------+------------+
+| xhm  |  100.00000 |
+| azg  |   75.00000 |
+| cxy  |   80.00000 |
+| xsc  |   89.00000 |
++------+------------+
+
+select name,avg(score) as avg1 from scores
+inner join students on scores.stuid=students.id
+group by stuid
+order by avg1;
+
++------+-----------+
+| name | avg1      |
++------+-----------+
+| azg  |  75.00000 |
+| cxy  |  80.00000 |
+| xsc  |  89.00000 |
+| xhm  | 100.00000 |
++------+-----------+
+
+select distinct 列*
+from 表1 inner|left|right| join 表2 on 表1与表2的关系
+where ...
+group by ... having ...
+order by ...
+
+=========================================================================
+高阶
+购物车：消费者 商品 数量 价格
+商品信息：名称 价格 单位 日期
+
+商品分类 1家电 2日化 3食品
+商品	1电视2洗衣机3辣条4香皂5面包
+1.确定实体间是否有关系
+2.确定是几对几的关系
+3.确定在哪个实体中建立字段
+
+查询男生的姓名、总分
+students.gender=1
+students.name
+sum(scores.score)
+建立连接：students.id=scores.stuid
+使用sum--->分组，姓名：每个人的总分
+
+select name,sum(score)
+from students
+inner join scores on students.id=scores.stuid
+group by students.id;
++------+------------+
+| name | sum(score) |
++------+------------+
+| xhm  |      100.0 |
+| azg  |      450.0 |
+| cxy  |       80.0 |
+| xsc  |       89.0 |
++------+------------+
+
+select name,gender,sum(score)
+from students
+inner join scores on students.id=scores.stuid
+group by students.id
+having gender=1;
++------+--------+------------+
+| name | gender | sum(score) |
++------+--------+------------+
+| azg  |       |      450.0 |
+| xsc  |       |       89.0 |
++------+--------+------------+
+
+查询科目的名称、平均分
+subjects.title
+avg(scores.score)
+连接：subjects.id=scores.subid
+avg--->group by subjects.title
+
+查询未删除科目的名称、最高分、平均分
+where subjects.isdelete=0
+subjects.title
+max(scores.score)
+avg(scores.score)
+连接：subjects.id=scores.subid
+max,avg--->group by subjects.title
+
+各学科 最高分 平均分
+select title,max(score),avg(score)
+from subjects
+inner join scores on subjects.id=scores.subid
+group by title;
++---------+------------+------------+
+| title   | max(score) | avg(score) |
++---------+------------+------------+
+| English |       99.0 |   99.00000 |
+| java    |       50.0 |   50.00000 |
+| php     |       93.0 |   85.50000 |
+| python  |       80.0 |   80.00000 |
+| shuxue  |       89.0 |   60.50000 |
+| yuwen   |      100.0 |   99.00000 |
++---------+------------+------------+
+
+学生姓名 最高分 注意:students.id-scores.stuid	连号-：把没有记录成绩(null)的学生也给了最高分
+
+select students.name,max(score)
+from students
+inner join scores on students.id-scores.stuid
+group by name;
++-------+------------+
+| name  | max(score) |
++-------+------------+
+| azg   |      100.0 |
+| cxy   |      100.0 |
+| laoge |      100.0 |
+| qiang |      100.0 |
+| xhm   |       99.0 |
+| xsc   |      100.0 |
+| zhan  |      100.0 |
++-------+------------+
+
+而我想得到的是每个有记录成绩的学生姓名以及最高分
+select students.name,max(score)
+from students
+inner join scores on students.id=scores.stuid
+group by name;
++------+------------+
+| name | max(score) |
++------+------------+
+| azg  |       99.0 |
+| cxy  |       80.0 |
+| xhm  |      100.0 |
+| xsc  |       89.0 |
++------+------------+
+
+查询学生姓名 各学科 各最高分
+select students.name,subjects.title,max(scores.score)
+from scores
+inner join students on scores.stuid=students.id
+inner join subjects on scores.subid=subjects.id
+group by scores.id
+order by students.name;
++------+---------+-------------------+
+| name | title   | max(scores.score) |
++------+---------+-------------------+
+| xhm  | yuwen   |             100.0 |
+| azg  | yuwen   |              98.0 |
+| azg  | English |              99.0 |
+| cxy  | python  |              80.0 |
+| azg  | php     |              93.0 |
+| azg  | java    |              50.0 |
+| xsc  | shuxue  |              89.0 |
+| azg  | shuxue  |              32.0 |
+| azg  | php     |              78.0 |
++------+---------+-------------------+
+
+学生姓名按字母排序 各学科 各最高分
+select students.name,subjects.title,max(scores.score)
+from scores
+inner join students on scores.stuid=students.id
+inner join subjects on scores.subid=subjects.id
+group by scores.id
+order by students.name;
++------+---------+-------------------+
+| name | title   | max(scores.score) |
++------+---------+-------------------+
+| azg  | php     |              78.0 |
+| azg  | yuwen   |              98.0 |
+| azg  | java    |              50.0 |
+| azg  | English |              99.0 |
+| azg  | shuxue  |              32.0 |
+| azg  | php     |              93.0 |
+| cxy  | python  |              80.0 |
+| xhm  | yuwen   |             100.0 |
+| xsc  | shuxue  |              89.0 |
++------+---------+-------------------+
+
+=====================创建视图,对SQL语句封装======================
+
+create view v_t_b_c as
+select t.*,c.score,b.title from scores as c
+inner join students as t on c.stuid=t.id
+inner join subjects as b on c.subid=b.id;
+
+增加条件
+alter view v_t_b_c as
+select t.*,c.score,b.title from scores as c
+inner join students as t on c.stuid=t.id
+inner join subjects as b on c.subid=b.id
+where t.isdelete=0 and b.isdelete=0;
+
+select * from v_t_b_c;
++----+------+--------+-------+---------+
+| id | name | gender | score | title   |
++----+------+--------+-------+---------+
+|  1 | xhm  |        | 100.0 | yuwen   |
+|  2 | azg  |       |  98.0 | yuwen   |
+|  2 | azg  |       |  99.0 | English |
+|  3 | cxy  |        |  80.0 | python  |
+|  2 | azg  |       |  93.0 | php     |
+|  2 | azg  |       |  50.0 | java    |
+|  4 | xsc  |       |  89.0 | shuxue  |
+|  2 | azg  |       |  32.0 | shuxue  |
+|  2 | azg  |       |  78.0 | php     |
++----+------+--------+-------+---------+
+
+==============================================================
+自关联
+设计省信息的表结构
+
+CREATE TABLE `cnarea_2016` (
+  `id` mediumint(7) unsigned NOT NULL AUTO_INCREMENT,
+  `parent_id` mediumint(7) unsigned NOT NULL DEFAULT '0' COMMENT '父级ID',
+  `level` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '层级',
+  `area_code` bigint(12) unsigned NOT NULL DEFAULT '0' COMMENT '行政代码',
+  `zip_code` mediumint(6) unsigned zerofill NOT NULL DEFAULT '000000' COMMENT '邮政编码',
+  `city_code` char(6) NOT NULL DEFAULT '' COMMENT '区号',
+  `name` varchar(50) NOT NULL DEFAULT '' COMMENT '名称',
+  `short_name` varchar(50) NOT NULL DEFAULT '' COMMENT '简称',
+  `merger_name` varchar(50) NOT NULL DEFAULT '' COMMENT '组合名',
+  `pinyin` varchar(30) NOT NULL DEFAULT '' COMMENT '拼音',
+  `lng` decimal(10,6) NOT NULL DEFAULT '0.000000' COMMENT '经度',
+  `lat` decimal(10,6) NOT NULL DEFAULT '0.000000' COMMENT '纬度',
+  PRIMARY KEY (`id`),
+  KEY `idx_lev` (`level`,`parent_id`) USING BTREE
+) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='中国行政地区表';
++-------------+--------------------------------+------+-----+----------+----------------+
+| Field       | Type                           | Null | Key | Default  | Extra          |
++-------------+--------------------------------+------+-----+----------+----------------+
+| id          | mediumint(7) unsigned          | NO   | PRI | NULL     | auto_increment |
+| parent_id   | mediumint(7) unsigned          | NO   |     | 0        |                |
+| level       | tinyint(1) unsigned            | NO   | MUL | 0        |                |
+| area_code   | bigint(12) unsigned            | NO   |     | 0        |                |
+| zip_code    | mediumint(6) unsigned zerofill | NO   |     | 000000   |                |
+| city_code   | char(6)                        | NO   |     |          |                |
+| name        | varchar(50)                    | NO   |     |          |                |
+| short_name  | varchar(50)                    | NO   |     |          |                |
+| merger_name | varchar(50)                    | NO   |     |          |                |
+| pinyin      | varchar(30)                    | NO   |     |          |                |
+| lng         | decimal(10,6)                  | NO   |     | 0.000000 |                |
+| lat         | decimal(10,6)                  | NO   |     | 0.000000 |                |
++-------------+--------------------------------+------+-----+----------+----------------+
+
+create table areas(
+id int auto_increment primary key not null,
+title varchar(20),
+pid int,
+foreign key(pid) references areas(id));
++-------+-------------+------+-----+---------+----------------+
+| Field | Type        | Null | Key | Default | Extra          |
++-------+-------------+------+-----+---------+----------------+
+| id    | int(11)     | NO   | PRI | NULL    | auto_increment |
+| title | varchar(20) | YES  |     | NULL    |                |
+| pid   | int(11)     | YES  | MUL | NULL    |                |
++-------+-------------+------+-----+---------+----------------+
+
+source areas.sql;
+select count(*) from areas where pid is null;
+
+查看陕西省所有城市
+select city.* from areas as city
+inner join areas as province on city.pid=province.aid
+where province.atitle='陕西省';
+
+查看广州市所有区县
+select dis.* from areas as dis
+inner join areas as city on city.aid=dis.pid
+where city.atitle='广州市';
+
+insert into areas values('100000','北京市','100000');
+update areas set pid=null where id=100000; # 注意:省份的pid为null
+
+select * from areas where pid=(select id from areas where title='北京市');
+Empty set (0.00 sec)
+
+mysql> insert into areas values('360000','福建省',null);
+
+mysql> insert into areas values('362000','泉州市','362000');#注意地级市的pid,开始没有弄明白
+
+mysql> insert into areas values('362500','德化县','362500');#注意县级的pid
+
+取别名查看
+select p.id as sid,p.title as stitle,
+d.id as did,d.title as dtitle
+from areas as p
+inner join areas as d on p.id=d.pid
+limit 0,3;	# 如果数据太多，则limit
+
+
+# 我把各级地区的pid没弄明白
+mysql> update areas set pid='100000' where id=100001;
+
+mysql> update areas set pid='140000' where id=140001;
+
+mysql> update areas set pid='360000' where id=362000;
+
+mysql> update areas set pid='362000' where id=362500;
+
+mysql> select * from areas;
++--------+-----------+--------+
+| id     | title     | pid    |
++--------+-----------+--------+
+| 100000 | 北京市    |   NULL |
+| 100001 | 西城区    | 100000 |
+| 140000 | 山西省    |   NULL |
+| 140001 | 太原市    | 140000 |
+| 360000 | 福建省    |   NULL |
+| 362000 | 泉州市    | 360000 |
+| 362500 | 德化县    | 362000 |
++--------+-----------+--------+
+
+insert into areas values('361000','福州市','360000');
+
+select p.id as sid,p.title as stitle,
+d.id as did,d.title as dtitle
+from areas as p
+inner join areas as d on p.id=d.pid
+where p.pid is null and p.title='福建省';
++--------+-----------+--------+-----------+
+| sid    | stitle    | did    | dtitle    |
++--------+-----------+--------+-----------+
+| 360000 | 福建省    | 361000 | 福州市    |
+| 360000 | 福建省    | 362000 | 泉州市    |
++--------+-----------+--------+-----------+
+
+=================================================================================
+
+事务:默认会启用begin???
+表的类型：innodb ——> 数据库引擎，数据库核心代码,写的速度较快
+alter table 表名 engine=innodb;	# 一般都是默认innodb引擎
+begin;		# 开启
+update tablename set name='newname' where id=n;
+rollback;	# 回滚,在提交之前回滚
+commit;		# 提交
+select * from tablename;
+
+=================================================================================
+
+索引
+mysql> set profiling=1;
+Query OK, 0 rows affected, 1 warning (0.00 sec)
+
+mysql> select * from areas where title='福建省';
++--------+-----------+------+
+| id     | title     | pid  |
++--------+-----------+------+
+| 360000 | 福建省    | NULL |
++--------+-----------+------+
+
+mysql> show profiles;
++----------+------------+---------------------------------------------+
+| Query_ID | Duration   | Query                                       |
++----------+------------+---------------------------------------------+
+|        1 | 0.00051500 | select * from areas where title='福建省'    |
++----------+------------+---------------------------------------------+
+注意不同：查询时间快了
+mysql> create index titleIndex on areas(title(20));
+       show index from areas;
+mysql> select * from areas where title='福建省';
++--------+-----------+------+
+| id     | title     | pid  |
++--------+-----------+------+
+| 360000 | 福建省    | NULL |
++--------+-----------+------+
+
+mysql> show profiles;
++----------+------------+---------------------------------------------+
+| Query_ID | Duration   | Query                                       |
++----------+------------+---------------------------------------------+
+|        1 | 0.00051500 | select * from areas where title='福建省'    |
+|        4 | 0.00030900 | select * from areas where title='福建省'    |
++----------+------------+---------------------------------------------+
+
+==================================================================================
+创建表后设计外键:
+
+create table rooms(
+id int auto_increment primary key not null,
+title varchar(10));
+
+create table stu(
+id int auto_increment primary key not null,
+name varchar(10),
+roomid int);
+在表创建后设计外键
+alter table stu add constraint stu_room foreign key(roomid) references rooms(id);
+insert into rooms values(303,'office');	# 先加数据给rooms
+insert into stu values(0,'zhangsan',303);
+
+===================================================================================
+
+
+
+

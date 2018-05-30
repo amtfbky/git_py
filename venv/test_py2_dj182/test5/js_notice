@@ -1,0 +1,37 @@
+<script>
+    console.log("hello"+2);      //str+anything=str
+    console.log("hello"+True);
+    console.log(true+2);         //3, false+2=2
+
+    function f(){
+        document.write("<h1>hello python</h1>")
+    }
+    console.log(typeof f());     //=console.log(f())=Undefined
+
+    console.log(parseInt("6.43214"));   //6 parserFloat("6.43214")=6.43214
+    console.log(parseInt("hello"));     //NaN:not a number
+    console.log(parseInt("123"));
+    console.log(parseInt("123abc"));
+    console.log(parseInt("abc123"));    //NaN
+
+    console.log(typeof 123);                //number
+    console.log(typeof "hello");            //string
+    console.log(typeof true);               //boolean
+    console.log(typeof null);               //object
+    console.log(typeof undefined);          //undefined
+    console.log(typeof [1,2,3]);            //object
+    console.log(typeof {"name":"123"});     //object
+
+    var i=10;
+    i++;
+    console.log(i);
+
+    console.log(i++);       //i
+    console.log(++i);       //10+1
+
+    var n=NaN;
+    console.log(n>5);       //False
+    console.log(n<5);       //False
+    console.log(n=5);       //False
+    console.log(n=NaN);     //False,n!=NaN-->True
+</script>

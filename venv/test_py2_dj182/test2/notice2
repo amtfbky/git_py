@@ -1,0 +1,289 @@
+模型：细讲
+ORM
+实现了数据模型与数据库的解耦，即数据模型的设计不需要依赖于特定的数据库，通过简单的配置就可以轻松更换数据库
+
+ORM是“对象-关系-映射”的简称，主要任务是：
+    根据对象的类型生成表结构
+    将对象、列表的操作，转换为SQL语句
+    将SQL查询到的结构转换为对象、列表
+
+这极大的减轻了开发人员的工作量，不需要面对因数据库变更二导致的无效劳动
+
+Django中的模型包含存储数据的字段和约束，对应着数据库中唯一的表
+
+第一步：新建数据库test2
+第二步：配置数据库信息setting.py
+
+    DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql', # 引擎兼容三套数据库，这里改成mysql的
+        'NAME': 'test2',
+        'USER': 'root',
+        'PASSWORD': 'XXX',
+        'HOST': 'localhost',
+        'PORT': '3306',
+    }
+}
+
+python manage.py inspectdb > booktest/models.py # 使用数据库生成模型类???
+
+第三步：创建应用 python manage.py startapp booktest
+第四步：加载应用
+    INSTALLED_APPS = (
+    ...
+    'booktest',
+)
+
+第五步：定义模型(核心目的——生成表的字段以及类型)
+
+关系相互访问：
+定义两个类
+BookInfo
+HeroInfo
+
+    book=models.ForeignKey(BookInfo)
+
+hero对象.book
+    hero.book_id(=hero.book.id)
+book对象.heroinfo_set
+
+# -*- coding:utf8 -*-
+
+from django.db import models
+
+class BookInfo(models.Model):
+    btitle=models.CharField(max_length=20)
+    bpub_date=models.DateTimeField(db_column='pub_date')
+    bread=models.IntegerField(default=0)            # 阅读量
+    bcommet=models.IntegerField(null=False)         # 评论量
+    isDelete=models.BooleanField(default=False)
+
+    class Meta:                                     # 元选项?
+        db_table='bookinfo'
+
+
+class HeroInfo(models.Model):
+    hname=models.CharField(max_length=10)
+    hgender=models.BooleanField(default=True)
+    hcontent=models.CharField(max_length=1000)      # 描述
+    isDelete=models.BooleanField(default=False)
+    book=models.ForeignKey(BookInfo)
+
+第六步：迁移，不用再到数据库里操作
+python manage.py makemigrations
+Migrations for 'booktest':
+  0001_initial.py:
+    - Create model BookInfo
+    - Create model HeroInfo
+
+python manage.py migrate
+Operations to perform:
+  Synchronize unmigrated apps: staticfiles, messages
+  Apply all migrations: admin, contenttypes, sessions, auth, booktest
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+  Installing custom SQL...
+Running migrations:
+  No migrations to apply.
+要执行的操作:
+  同步未迁移应用程序:
+  应用所有迁移:
+同步应用程序而不迁移:
+  正在创建表...
+    正在运行延迟的 SQL...
+  正在安装自定义 SQL...
+正在运行迁移:
+  没有要应用的迁移。 ——这时可以看到数据库里创建了许多新表
+
+  ——已经迁移过了???
+
+模型类（即数据库的管理者?）的属性
+objects：默认管理器，是Manager类型的对象，用于与数据库交互
+    ——充当ORM的角色：操作数据库数据，映射
+
+1.
+任何一个模型类都有一个管理器，可以自定义管理器（可以自定义查询集）
+自定义管理器两个作用：
+    1）更改查询集
+    2）增加创建对象的方法
+
+class BookInfoManager(models.Manager):
+    """自定义管理器：原始数据查询"""
+    def get_queryset(self):
+        """重写父类原始数据查询方法"""
+        # 在调用父类方法实现查询的基础上再把一些数据过滤掉
+        return super(BookInfoManager, self).get_queryset().filter(
+            isDelete=False)     # 过滤掉逻辑删除的，更改父类查询集
+管理器使用：
+    class BookInfo(models.Model):
+        ...
+        book1=models.Manager()
+        book2=BookInfoManager()         # 可自己定义多个管理器，成了模型类的属性
+
+        python manage.py shell          # 运行框架里的python-shell
+        from booktest.models import BookInfo    # 查询之前要先改动数据库数据，如逻辑删除
+        BookInfo.book1.all()
+        BookInfo.book2.all()
+
+2.
+模型类的创建
+    2种方法操作数据库的数据
+
+    第一种方法：在定义模型的类里，这种方法在Django里不推荐，推荐第二种方法重写新的管理器
+    class BookInfo(models.Model):
+        。。。
+        @classmethod
+            def create(cls, btitle, bpub_date):
+            b=BookInfo()
+            b.btitle=btitle
+            b.bpub_date=bpub_date
+            b.bread=0
+            b.bcommet=0
+            b.isDelete=False
+            return b
+python manage.py shell
+In [1]: from booktest.models import BookInfo
+
+In [2]: from datetime import datetime
+
+In [3]: b=BookInfo.create('abc',datetime(1990,1,1))     # BookInfo.create
+
+In [4]: b.save()            # 写入数据库新的数据
+
+    第二种方法：在管理器的类里
+    class BookInfoManager(models.Manager):
+        。。。
+        def create(cls, btitle, bpub_date):
+            b=BookInfo()
+            b.btitle=btitle
+            b.bpub_date=bpub_date
+            b.bread=0
+            b.bcommet=0
+            b.isDelete=False
+            return b
+In [1]: from booktest.models import BookInfo
+
+In [2]: from datetime import datetime
+
+In [3]: b=BookInfo.book2.create('abc2',datetime(2018,1,1))  # BookInfo.book2.create
+
+In [4]: b.save()
+
+注意：
+第一点：
+    book1和book2各自new了新的模型类对象，默认的objects管理器就不能用了
+    In [1]: from booktest.models import BookInfo
+
+    In [2]: BookInfo.objects.all()
+    AttributeError: type object 'BookInfo' has no attribute 'objects'   # 看错误提示
+
+第二点：新定义管理器在模型类里已经创建了book2类对象（属性），所以不能在模型类外面再定义新的管理器对象
+
+    In [3]: from booktest.models import BookInfo, BookInfoManager
+
+    In [4]: manager=BookInfoManager()
+
+    In [5]: BookInfo.manager.all()
+    AttributeError: type object 'BookInfo' has no attribute 'manager'
+
+再注意：
+    如果更改了模型类里的字段，就要重新迁移，表里不能有数据；
+    如果迁移不成功，就要把原来的迁移文件先删掉，再迁移；
+    最好不要修改模型类，迁移很麻烦。。。
+
+3.查询：=select，配套过滤器（=where、limit）使用
+1)返回查询集的方法：
+all()：获取所有
+filter()：获取满足条件的
+exclude()：获取不满足条件的，和filter相反
+order()：排序
+values()：一个对象构成一个字典，再把字典构成一个列表返回
+
+    In [7]: BookInfo.book2.values()     # values()的用法
+    Out[7]: 这就是json，以后在前端可以直接渲染后显示
+    [{'bcommet': 34L, 'btitle': u'...', 'bpub_date': datetime.datetime(1980, 5, 1, 0, 0, tzinfo=<UTC>), 'isDelete': False, u'id': 1L, 'bread': 12L},
+    {'bcommet': 40L, 'btitle': u'...', 'bpub_date': datetime.datetime(1986, 7, 24, 0, 0, tzinfo=<UTC>), 'isDelete': False, u'id': 2L, 'bread': 36L},
+    {'bcommet': 80L, 'btitle': u'...', 'bpub_date': datetime.datetime(1995, 12, 24, 0, 0, tzinfo=<UTC>), 'isDelete': False, u'id': 3L, 'bread': 20L},
+    {'bcommet': 24L, 'btitle': u'...', 'bpub_date': datetime.datetime(1987, 11, 11, 0, 0, tzinfo=<UTC>), 'isDelete': False, u'id': 4L, 'bread': 58L},
+    {'bcommet': 0L, 'btitle': u'abc', 'bpub_date': datetime.datetime(1989, 12, 31, 16, 0, tzinfo=<UTC>), 'isDelete': False, u'id': 5L, 'bread': 0L},
+    {'bcommet': 0L, 'btitle': u'abc2', 'bpub_date': datetime.datetime(2017, 12, 31, 16, 0, tzinfo=<UTC>), 'isDelete': False, u'id': 6L, 'bread': 0L}]
+
+2）返回单个值的方法：
+get()：单个满足条件
+    -未找到引发异常：DoesNoExist
+    -如果多条被返回，引发异常：MultipleObjectsReturned，因为get只能查询一条
+count()：当前查询的总条数
+first()：返回第一个对象
+last()：最后一个
+exists()：判断查询集里是否有数据，如有返回True
+
+    In [8]: BookInfo.book2.count()
+    Out[8]: 6
+
+    In [9]: BookInfo.book2.first()      # 要满足条件
+    Out[9]: <BookInfo: BookInfo object>
+
+    In [10]: BookInfo.book2.last()
+    Out[10]: <BookInfo: BookInfo object>
+
+    In [11]: BookInfo.book2.exists()
+    Out[11]: True
+
+3）限制查询集=limit和offset
+query=BookInfo.objects.all()
+for i in query:     # 缓存全部
+for i in query[11:20]:# 这样才会调用缓存里的数据
+
+for i in query[0:10]:    # 查询子集只缓存[0:10]
+for i in query[11:20]:   # 不缓存了，看上面
+
+4）字段查询=where，作为filter()、exclude()、get()的参数
+比如：
+    hero.book_id    # 外键原始值？？？
+    filter(title__contain="%") => where title like '%\%%';  # 查找包含%的
+    BookInfo.book2.filter(isDelete=False)   # -->isDelete__exact=False
+    BookInfo.book1.filter(btitle__contains='传')
+    BookInfo.book1.exclude(btitle__startwith/endwith='传')
+    BookInfo.book1.filter(btitle__isnull=True)
+
+注意：iexact、icontains、istartwith、iendwith，前面加i就不区分大小写
+
+范围查询：gt,gte,lt,lte --> >,>=,<,<=
+    BookInfo.book1.filter(id__in=[1,2,3])
+
+    日期：year,month,day,week_day,hour,minute,second
+    In [25]: from datetime import datetime,date
+
+    In [26]: BookInfo.book1.filter(bpub_date__gt=date(2017,1,1))    # 大于这个日期的数据
+
+    外联：
+    BookInfo.book1.filter(heroinfo__hcontent__contains='八')     # 关联booktest_heroinfo表里hconcent字段内容包含“八”的
+    list = BookInfo.book1.filter(pk__lt=3)
+
+5）聚合函数
+先导入模块
+    from django.db.models import Max    # 最大值聚合函数
+    list = BookInfo.book1.aggregate(Max('bpub_date/id/...'))        # 最大日期、id、其他可以判断最大值的字段
+
+6）F对象
+    list = BookInfo.book1.filter(bread__gt=20)      # 阅读量>20
+    list = BookInfo.book1.filter(bread__gt=F('bcommet'))      # 阅读量>评论量，两个字段大小比较
+    list = BookInfo.book1.filter(bread__gt=F('bcommet') * 2)      # 阅读量>评论量的2倍，两个字段大小比较
+    from datetime import datetime, timedelta
+    list = BookInfo.book1.filter(bpub_date__lt=F('bpub_date') + timedelta(days=1))  # 运算，时间处理函数timedelta???
+  关联查询
+    list = BookInfo.book1.filter(idDelete=F('heroinfo__isDelete'))  # heroinfo表逻辑删除的数据不显示
+
+7）Q对象
+list = BookInfo.book1.filter(pk__lt=4,btitle__contains='x') # 逻辑与 xxx.filter(pk__lt=4).filter(btitle__contain='x')
+list = BookInfo.book1.filter(Q(pk__lt=2)|Q(btitle__contains='传'))   # 逻辑或
+
+
+
+
+
+
+
+
+

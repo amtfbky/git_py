@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{{ list|safe }}
+<hr>
+{% autoescape off %}
+{{ list }}
+{% endautoescape %}
+<hr>
+字面值:<br>
+{{ list2|default:'<h1>123</h1>'}}
+<br>
+手动转义:<br>
+{{ list2|default:'&lt;h1&gt;123&lt;/h1&gt;' }}
+</body>
+</html>

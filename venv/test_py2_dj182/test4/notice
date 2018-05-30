@@ -1,0 +1,314 @@
+模板
+1.配置
+    -mysql
+    -templates  #   'DIRS': [os.path.join(BASE_DIR, 'templates')],
+    -app        #   'booktest'
+
+2.booktest/models.py
+    from django.db import models
+
+    class BookInfo(models.Model):
+        btitle=models.CharField(max_length=20)
+        bpub_date=models.DateField(db_column='pub_date')
+        bread=models.IntegerField()
+        bcommet=models.IntegerField()
+        isDelete=models.BooleanField()
+        class Meta():
+            db_table='bookinfo'
+
+
+    class HeroInfo(models.Model):
+        hname=models.CharField(max_length=10)
+        hgender=models.BooleanField()
+        hcontent = models.CharField(max_length=1000)
+        isDelete = models.BooleanField()
+        book = models.ForeignKey('BookInfo')
+
+        # 第一步2：变量.showname，单个第二种取值方法
+        def showname(self):
+            return self.hname
+
+3.booktest/urls.py
+    from django.conf.urls import url
+    import views
+
+    urlpatterns=[
+        url(r'^$', views.index, name='index'),
+    ]
+
+4.views.py
+    from django.shortcuts import render
+
+    from models import *
+
+
+    def index(request):
+        hero=HeroInfo.objects.get(pk=1)                             # 取id=1的hname字段的值：郭靖
+        context={'hero': hero}
+
+        # 第二步1：取一坨的值，这里过滤了没有逻辑删除的值
+        list=HeroInfo.objects.filter(isDelete=True)
+
+        # 第二步2：取一坨的值，这里取到没有逻辑删除的值
+        list=HeroInfo.objects.filter(isDelete=False)
+        context={'list': list}
+        return render(request, 'booktest/index.html', context)
+
+5.index.html
+    <body>
+    # 第一步1：变量.hname，单个第一种取值方法
+    {{ hero.hname }}                                                # 变量，数据库表hname字段
+    # 第一步2：变量.showname，单个第二种取值方法
+    {{ hero.showname }}
+    <hr>
+
+    # 第二步1：取一坨的值，判断为空输出nothing ...
+    {% for hero in list%}
+        {% empty %}
+        nothing ...
+    {% endfor %}
+    </body>
+
+    # 第二步2-1：遍历取到的数据
+    <ul>
+    {% for hero in list%}
+        <li>{{ hero.showname }}</li>
+        {% empty %}
+        <li>nothing ...</li>
+    {% endfor %}
+    </ul>
+
+        # 获得当前循环的第几次???看了底下这个就懂了
+        <li>{{ forloop.counter }}{{ hero.showname }}</li>
+
+    # 模板里的注释
+    {# 这是单行注释，底下commet是多行注释 #}
+    {% commet %}
+    http://blog.csdn/net/xyp84/article/details/7945094              # 讲解过滤器的链接
+    {% endcommet %}
+    <ul>
+        # 第二步2-2：遍历，并让奇数行显示蓝色，偶数行绿色
+        {% for hero in list%}
+
+                # 管道为过滤器，这里就是说循环次第数|滤出被2整除的(相当于方法的调用)
+                {% if forloop.counter|divisibleby:"2" %}            # 求余，即判断循环的次第数奇偶
+                    <li style="color:green">{{ forloop.counter }}{{ hero.showname }}</li>
+                {% else %}
+                    <li style="color:blue">{{ forloop.counter }}{{ hero.showname }}</li>
+                {% endif %}
+            {% empty %}
+            <li>nothing ...</li>
+        {% endfor %}
+    </ul>
+-----------------------------------------------------------------------------------------------
+反向解析
+根级urls:test4/urls.py
+    url(r'^booktest/', include('booktest.urls', namespace='booktest')),
+
+    ^booktest/                                   # 匹配域名后面跟着/booktest/
+
+应用二级urls:test4/booktest/urls.py
+    url(r'^(\d+)$', views.show, name='show')     # 匹配获取分组里的数字,不带/
+
+模板里的链接
+    <a href="123">显示</a>                        # 这是二级urls匹配的,不带/
+
+所以浏览器地址：
+http://127.0.0.1:8000/booktest/
+链接地址：
+http://127.0.0.1:8000/booktest/123               # 可以匹配
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+如果模板里的链接
+    <a href="/123">显示</a>                       # 这是二级urls匹配的,带/,匹配不上，因为匹配条件里不带/
+
+如果改动根级的匹配规则，如：
+    url(r'^', include('booktest.urls', namespace='booktest')),
+就必须跟着改动模板里的链接路径
+    <a href="/123">显示</a>                       # 这时就可以匹配上了
+
+***************************************
+* 但这很麻烦，为了解决这个问题，所以要反向解析 *
+***************************************
+第一种情况：
+根级的匹配规则：
+    url(r'^abc/', include('booktest.urls', namespace='booktest')),
+二级：
+    url(r'^\d+$', views.show, name='show'),      # 去掉分组的小括号
+
+在模板里 根级urls-namespace:二级urls-name
+    <a href='{% url "booktest:show" %}'>显示</a>  # namespace:name
+http://127.0.0.1:8000/abc/
+
+第二种情况：
+根级的匹配规则：去了booktest/，变成'^'，空了
+    url(r'^', include('booktest.urls', namespace='booktest')),
+二级没变：
+    url(r'^\d+$', views.show, name='show'),
+在模板里 根级urls-namespace:二级urls-name
+    <a href='{% url "booktest:show" %}'>显示</a>
+http://127.0.0.1:8000
+
+注意：给参数
+二级匹配只要加上小括号，分组，就必须在模板里的链接给参数：
+    url(r'^(\d+)$', views.show, name='show'),
+在模板里针对二级urls的匹配给参数'123'(任意数字)
+    <a href='{% url "booktest:show" '123' %}'>显示</a>
+
+如果二级匹配多了分组，再增加参数：
+    url(r'^(\d+)/(\d+)$', views.show, name='show'),
+在模板里针对二级urls的匹配给多个参数'123' '456'(任意数字)
+    <a href='{% url "booktest:show" '123' '456' %}'>显示</a>
+同时在视图修改show，增加参数id2
+def show(request, id, id2):
+    context={'id': id}
+    return render(request, 'booktest/show.html', context)
+
+总之，反向解析就是根据给定的url动态地生成链接地址
+------------------------------------------------------------------------------------
+模板继承:三级
+第一级：base.html
+    <title>Title</title>
+        {% block head %}{% endblock %}
+    </head>
+    <body>
+    <h1>logo</h1>
+    <hr>
+    {% block content1 %}
+        <h1>父模板body预留区域，留坑</h1>
+    {% endblock %}
+    <hr>
+    <h1>contact {{ uname }}</h1>    # 父模板添加的东西子模板都会继承
+    </body>
+
+第二级：base_user.html                # 注意：子模板要在文件里添加内容都要在block标签里
+    {% extends 'booktest/base.html' %}
+    {% block content1 %}
+    <table border="2">
+        <tr>
+            <td height="600">用<br>户<br>导<br>航</td>
+            <td>{% block user_content %}{% endblock %}</td>
+        </tr>
+    </table>
+    {% endblock content1 %}
+
+第三极：                              # 注意：子模板要在文件里添加内容都要在block标签里
+user1.html 用户中心1，模板设到这里就行了，这是用户使用的页面
+    {% extends 'booktest/base_user.html' %}
+    {% block head %}
+        <script>alert('这是孙子模板越级填base爷爷模板的坑')</script>
+    {% endblock head %}
+    {% block user_content %}
+        <h1>用户中心1</h1>
+    {% endblock user_content %}
+
+user2.html 用户中心2
+    {% extends 'booktest/base_user.html' %}
+    {% block user_content %}
+        <h1>用户中心2</h1>
+    {% endblock user_content %}
+
+视图
+# 模板教科案例框架
+def user1(request):
+    context={'uname': '阿弥陀佛'}
+    return render(request, 'booktest/user1.html', context)
+
+def user2(request):
+    return render(request, 'booktest/user2.html')
+
+urls.py
+    url(r'^user1/$', views.user1, name='user1'),
+    url(r'^user2/$', views.user2, name='user2'),
+---------------------------------------------------------------------------------------
+HTML转义
+视图
+    def htmlTest(request):
+        context={'list': '<h1>abc</h1>'}
+        return render(request, 'booktest/htmlTest.html', context)
+urls.py
+    url(r'^htmlTest/$', views.htmlTest)
+
+模板
+# 原样输出,即转义
+    {{ list }}
+    页面源代码：
+        <body>
+            &lt;h1&gt;abc&lt;/h1&gt;
+        </body>
+# 关闭转义1，过滤，用于变量
+    {{ list|safe }}
+    页面源代码：
+        <body>
+            <h1>abc</h1>
+        </body>
+# 关闭转义2，代码块用autoescape，自动逃脱，类似富文本编辑器???
+    {% autoescape off %}
+        {{ list }}
+    {% endautoescape %}
+
+# 模板中（非视图，就是没有通过render渲染）的字符串转义
+    字面值:<br>
+    {{ list2|default:'<h1>123</h1>'}}                   # 没有转义，list2不存在，过滤器输出123
+    <br>
+    手动转义:<br>
+    {{ list2|default:'&lt;h1&gt;123&lt;/h1&gt;' }}      # 手动转义，list2不存在，过滤器输出<h1>123</h1>
+
+    字面值:<br>
+    {{ list|default:'<h1>123</h1>'}}                    # 当list1存在时，过滤器不起作用<h1>abc</h1>
+    <br>
+    手动转义:<br>
+    {{ list|default:'&lt;h1&gt;123&lt;/h1&gt;' }}       # 当list1存在时，过滤器不起作用<h1>abc</h1>
+
+注意：
+    会被自动转义的字符
+    < &lt;
+    > &gt;
+    ' &#39;
+    " &quot;
+    & &amp;
+---------------------------------------------------------------------------------------------------
+CSRF
+跨站请求伪造
+视图
+    def csrf1(request):
+        return render(request, 'booktest/csrf1.html')
+
+    def csrf2(request):
+        uname=request.POST['uname']
+        return HttpResponse(uname)
+
+模板
+    <form action="csrf2" method="post">
+        {% csrf_token %}                                     # 跨站请求伪造保护，关闭csrf防御???
+
+        # 号外号外：该标签为了真实网站的用户能够提交数据，但这不安全，所以用到了验证码!!!
+        # <input type='hidden' name='csrfmiddlewaretoken' value='yhOsVRTBHBGSKXEsKsGC3kGV284WqpNi' />
+
+        <input type="text" name="uname">
+        <input type="submit" value="提交">
+    </form>
+
+urls.py
+    url(r'^csrf1$', views.csrf1),
+    url(r'^csrf2$', views.csrf2),
+
+实验：
+在test4/settings.py关闭CSRF
+    # 'django.middleware.csrf.CsrfViewMiddleware',
+python manage.py runserver 192.168.x.x:8000
+用外网访问，拷贝源代码稍微加工，做一个一模一样的网站，让人登录，就可以获取用户POST提交的数据，俗称钓鱼网站
+
+    <form action="http://域名/csrf2" method="post">           # 对了，钓鱼网站的域名怎么设置？能和原网站一样吗？
+
+        # 这一坨复制过来，钓鱼网站照样能获取表单???有点懵，不是有点，完全懵...
+        <input type='hidden' name='csrfmiddlewaretoken' value='yhOsVRTBHBGSKXEsKsGC3kGV284WqpNi' />
+
+        <input type="text" name="uname">
+        <input type="submit" value="提交">
+    </form>
+------------------------------------------------------------------------------------------------------
+验证码
+pip install pillow      # 图片制作模块
+看视图
+看模板verify_test1.html
+继续熟悉session，因为验证码验证要用到session
